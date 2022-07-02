@@ -11,29 +11,27 @@ rclcpp::Node::SharedPtr g_node = nullptr;
 
 rclcpp::WallRate g_loop_rate(2);
 rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr g_up_publisher;
+rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr g_down_publisher;
 std::shared_ptr<std_msgs::msg::Empty> g_message;
 
 void my_handle_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<Elevator::Request> request,
-    std::shared_ptr<Elevator::Response> response)
-{
+    std::shared_ptr<Elevator::Response> response) {
     (void)request_header;
     
     RCLCPP_INFO_STREAM(
         g_node->get_logger(),
         "Elevator service incoming request - is_up: " << (request->is_up ? "true" : "false"));
 
-    if (!request->is_up)
-    {
-        response->set__success(false);
-    }
-
     const int attempt_limit = 1;
     int attempts = 0;
     while (rclcpp::ok() && (attempts < attempt_limit)) {
-        g_up_publisher->publish(*g_message);
-        //rclcpp::spin_some(g_elevator_service_node);
+        if (request->is_up) {
+            g_up_publisher->publish(*g_message);
+        } else {
+            g_down_publisher->publish(*g_message);
+        }
         g_loop_rate.sleep();
         attempts += 1;
     }
@@ -41,14 +39,16 @@ void my_handle_service(
     response->set__success(true);
 }
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
     g_node = rclcpp::Node::make_shared("elevator_service_server");
     auto server = g_node->create_service<Elevator>("elevator", my_handle_service);
 
+    int queue_size = 10;
     g_up_publisher =
-      g_node->create_publisher<std_msgs::msg::Empty>("elevator_up", 10);
+      g_node->create_publisher<std_msgs::msg::Empty>("elevator_up", queue_size);
+    g_down_publisher =
+      g_node->create_publisher<std_msgs::msg::Empty>("elevator_down", queue_size);
     g_message = std::make_shared<std_msgs::msg::Empty>();
 
     rclcpp::spin(g_node);
