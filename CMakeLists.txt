@@ -21,9 +21,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
+find_package(phase2_custom_interfaces REQUIRED)
 
 add_executable(${ELEVATOR_SERVICE_SERVER_NODE} src/elevator_service_server.cpp)
-ament_target_dependencies(${ELEVATOR_SERVICE_SERVER_NODE} rclcpp std_msgs std_srvs)
+ament_target_dependencies(${ELEVATOR_SERVICE_SERVER_NODE} rclcpp std_msgs std_srvs phase2_custom_interfaces)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
