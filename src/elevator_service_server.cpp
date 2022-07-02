@@ -16,7 +16,7 @@ std::shared_ptr<std_msgs::msg::Empty> g_message;
 void my_handle_service(
     const std::shared_ptr<rmw_request_id_t> request_header,
     const std::shared_ptr<Elevator::Request> request,
-    const std::shared_ptr<Elevator::Response> response)
+    std::shared_ptr<Elevator::Response> response)
 {
     (void)request_header;
     RCLCPP_INFO(g_node->get_logger(),"My_callback has been called");
