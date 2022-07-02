@@ -19,7 +19,26 @@ void my_handle_service(
     std::shared_ptr<Elevator::Response> response)
 {
     (void)request_header;
-    RCLCPP_INFO(g_node->get_logger(),"My_callback has been called");
+    
+    RCLCPP_INFO_STREAM(
+        g_node->get_logger(),
+        "Elevator service incoming request - is_up: " << (request->is_up ? "true" : "false"));
+
+    if (!request->is_up)
+    {
+        response->set__success(false);
+    }
+
+    const int attempt_limit = 1;
+    int attempts = 0;
+    while (rclcpp::ok() && (attempts < attempt_limit)) {
+        g_up_publisher->publish(*g_message);
+        //rclcpp::spin_some(g_elevator_service_node);
+        g_loop_rate.sleep();
+        attempts += 1;
+    }
+
+    response->set__success(true);
 }
 
 int main(int argc, char ** argv)
